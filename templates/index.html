@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camouflage Overlay Studio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      padding: 2rem;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom right, #e8f0ff, #d5e6f6);
+      color: #333;
+    }
+    h1, h4, h6, p {
+      color: #222;
+    }
+    .image-option {
+      border: 3px solid transparent;
+      padding: 5px;
+      border-radius: 10px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      cursor: pointer;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .image-option:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .image-option.selected {
+      border-color: #ffc107;
+    }
+    .image-option img {
+      width: 150px;
+      height: auto;
+      border-radius: 6px;
+    }
+    #result-image, .comparison-images img {
+      height: 500px;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .result-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .comparison-view {
+      display: none;
+    }
+    .btn-primary, .btn-success, .btn-outline-secondary {
+      font-weight: 500;
+    }
+    .btn-primary {
+      background: linear-gradient(to right, #3b8d99, #6bbaec);
+      border: none;
+    }
+    .section-title {
+      font-weight: 600;
+    }
+    .header-subtitle {
+      font-size: 1.1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mb-2">🪖 Camouflage Overlay Studio</h1>
+    <p class="text-center header-subtitle mb-4">Preview and compare camouflage designs on operational visuals</p>
+
+    <form id="overlayForm" method="POST">
+      <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-6">
+          <h4 class="section-title">1. Select Original Image</h4>
+          <input type="hidden" name="original_image" id="original_input">
+          <div class="d-flex flex-wrap gap-3 mb-4">
+            {% for img in original_images %}
+              <div class="image-option original-option" id="original_{{ img.replace('.', '_') }}" onclick="selectImage('original', '{{ img }}')" title="Click to select">
+                <img src="/static/images/original/{{ img }}">
+              </div>
+            {% endfor %}
+          </div>
+
+          <h4 class="section-title">2. Select Camouflage Design</h4>
+          <input type="hidden" name="camo_design" id="camo_input">
+          <div class="d-flex flex-wrap gap-3">
+            {% for camo in camo_designs %}
+              <div class="image-option camo-option" id="camo_{{ camo.replace('.', '_') }}" onclick="selectImage('camo', '{{ camo }}')" title="Click to select">
+                <img src="/static/images/camo/{{ camo }}">
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-magic"></i> Generate Overlay</button>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-6">
+          {% if output_path %}
+          <div id="result-container" class="text-center">
+            <div id="overlay-view">
+              <h4 class="mb-3">✨ Overlay Result</h4>
+              <img id="result-image" src="{{ output_path }}" class="img-fluid">
+              <div class="result-actions">
+                <a id="download-link" class="btn btn-success" href="{{ output_path }}" download target="_blank"><i class="bi bi-download"></i> Download</a>
+                <button type="button" class="btn btn-outline-secondary" onclick="toggleComparison(true)"><i class="bi bi-columns-gap"></i> Compare</button>
+              </div>
+            </div>
+
+            <div id="comparison-view" class="comparison-view">
+              <h4 class="mb-3">🔍 Comparison View</h4>
+              <div class="d-flex justify-content-center gap-4 comparison-images">
+                <div>
+                  <h6>Original</h6>
+                  <img src="/static/images/original/{{ selected_original }}" alt="Original Image">
+                </div>
+                <div>
+                  <h6>Overlay</h6>
+                  <img src="{{ output_path }}" alt="Overlay Image">
+                </div>
+              </div>
+              <div class="result-actions mt-4">
+                <button type="button" class="btn btn-outline-primary" onclick="toggleComparison(false)"><i class="bi bi-arrow-left-circle"></i> Back</button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function selectImage(type, filename) {
+      document.getElementById(type + '_input').value = filename;
+      const all = document.querySelectorAll(`.${type}-option`);
+      all.forEach(el => el.classList.remove("selected"));
+      const selected = document.getElementById(type + '_' + filename.replace('.', '_'));
+      selected.classList.add("selected");
+    }
+
+    function toggleComparison(show) {
+      document.getElementById('overlay-view').style.display = show ? 'none' : 'block';
+      document.getElementById('comparison-view').style.display = show ? 'block' : 'none';
+    }
+
+    document.getElementById('overlayForm').addEventListener('submit', function(e) {
+      const original = document.getElementById('original_input').value;
+      const camo = document.getElementById('camo_input').value;
+
+      if (!original && !camo) {
+        alert('Please select both an image and a camouflage design.');
+        e.preventDefault();
+      } else if (!original) {
+        alert('Please select the original image.');
+        e.preventDefault();
+      } else if (!camo) {
+        alert('Please select the camouflage design.');
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+images/
+    camo/
+        camo1.png
+        camo2.png
+        camo3.png
+        Camo4.png
+        Camo5.png
+        Camo6.png
+    original/
+        Soldier.png
+        Soldier_with_tank.png
+    output/
+        soldier/
+            camo1_overlay.png
+            camo2_overlay.png
+            camo3_overlay.png
+            Camo4_overlay.png
+            Camo5_overlay.png
+            Camo6_overlay.png
+        soldier_with_tank/
+            camo1_overlay.png
+            camo2_overlay.png
+            camo3_overlay.png
+            Camo4_overlay.png
+            Camo5_overlay.png
+            Camo6_overlay.png
